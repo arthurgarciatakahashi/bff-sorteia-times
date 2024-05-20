@@ -1,13 +1,27 @@
 # app/main.py
 from fastapi import FastAPI
-# from .routes.jogadores import router as jogadores_router
-
 from .routes import jogadores
 import os
-app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
 
-# app.include_router(jogadores_router, prefix="/jogadores", tags=["jogadores"])
+app = FastAPI()
 app.include_router(jogadores.router)
+
+# Configurar origens permitidas
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "https://seu-dominio-front-end.com",
+    "https://bff-sorteia-times.onrender.com"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Permitir essas origens
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos os métodos (GET, POST, etc)
+    allow_headers=["*"],  # Permitir todos os headers
+)
 
 @app.get("/")
 def read_root():
