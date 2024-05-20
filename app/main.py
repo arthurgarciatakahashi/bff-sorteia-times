@@ -11,7 +11,9 @@ app.include_router(jogadores.router)
 origins = [
     "http://localhost",
     "http://localhost:8000",
+    "http://localhost:3000",
     "https://seu-dominio-front-end.com",
+    "https://sorteia-times.vercel.app",
     "https://bff-sorteia-times.onrender.com"
 ]
 
