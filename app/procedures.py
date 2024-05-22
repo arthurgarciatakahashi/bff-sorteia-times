@@ -3,31 +3,38 @@ import psycopg2
 from fastapi import HTTPException
 from .database import obter_conexao
 from .models import Jogador, JogadorBase, JogadorCreate
+import json
 
 def obter_todos_os_jogadores():
     conn = None
     try:
-        # Conecta ao banco de dados
         conn = obter_conexao()
+        cur = conn.cursor()
+        cur.execute("SELECT public.get_all_jogadores_count()")
 
-        cursor = conn.cursor()
-        
-        # Executa a função armazenada
-        cursor.execute("SELECT get_all_jogadores()")
-        
-        # Obtém o resultado
-        result = cursor.fetchone()
-        
-        # Fecha a conexão
-        cursor.close()
+        # Recupera o resultado da função
+        result = cur.fetchone()[0]
+
+        # Adiciona log para ver o resultado bruto
+        print("Resultado da função PostgreSQL:", result)
+
+        # Fecha o cursor e a conexão
+        cur.close()
         conn.close()
-        
-        # Converte o resultado para JSON e retorna
-        return result[0]
+
+        # Result é uma string JSON, então usamos json.loads para convertê-lo em um dicionário Python
+        data = result
+
+        # Adiciona log para ver os dados convertidos
+        print("Dados convertidos:", data)
+
+        return data
+    except psycopg2.Error as e:
+        print(f"Erro ao conectar ao banco de dados: {e}")
+        return {"jogadores": [], "total_count": 0}
     except Exception as e:
-        if conn:
-            conn.close()
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Erro ao obter os dados dos jogadores: {e}")
+        return {"jogadores": [], "total_count": 0}
 
 def criar_jogador(jogador: JogadorCreate):
     try:
