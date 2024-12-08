@@ -1,11 +1,13 @@
 # app/main.py
 from fastapi import FastAPI
-from .routes import jogadores
+from .routes import jogadores, logging
 import os
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(jogadores.router)
+app.include_router(logging.router)
+
 
 # Configurar origens permitidas
 origins = [

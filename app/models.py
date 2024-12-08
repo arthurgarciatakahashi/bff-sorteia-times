@@ -22,3 +22,7 @@ class JogadorCreate(BaseModel):
 
 class Config:
     orm_mode = True
+
+class RegistroLog(BaseModel):
+    ip_address: str
+    response_json: str

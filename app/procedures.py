@@ -2,8 +2,7 @@
 import psycopg2
 from fastapi import HTTPException
 from .database import obter_conexao
-from .models import Jogador, JogadorBase, JogadorCreate
-import json
+from .models import Jogador, JogadorBase, JogadorCreate, RegistroLog
 
 def obter_todos_os_jogadores():
     conn = None
@@ -54,11 +53,6 @@ def criar_jogador(jogador: JogadorCreate):
             cursor.close()
             connection.close()
 
-import psycopg2
-from fastapi import HTTPException
-from .database import obter_conexao
-from .models import Jogador
-
 def obter_jogador_por_id(jogador_id: int) -> Jogador:
     try:
         connection = obter_conexao()
@@ -87,7 +81,6 @@ def obter_jogador_por_id(jogador_id: int) -> Jogador:
         if connection:
             cursor.close()
             connection.close()
-
 
 def atualizar_jogador(jogador_id: int, jogador: JogadorBase):
     try:
@@ -123,5 +116,57 @@ def deletar_jogador(jogador_id: int):
         if connection:
             cursor.close()
             connection.close()
+
+def criar_log(log: RegistroLog):
+    try:
+        connection = obter_conexao()
+        cursor = connection.cursor()
+        #SELECT inserir_log('192.168.1.100', '{"response": "ok"}');
+        #select public.inserir_log('225.255.255.5', '{"response": "failover"}')
+
+        postgres_insert_query = """ 
+            SELECT inserir_log(%s, %s);
+        """
+        record_to_insert = (log.ip_address, log.response_json)
+        cursor.execute(postgres_insert_query, record_to_insert)
+        connection.commit()
+        return {"message": "log criado com sucesso!"}
+    except (Exception, psycopg2.DatabaseError) as error:
+        raise HTTPException(status_code=500, detail=str(error))
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+def obter_todos_os_logs():
+    conn = None
+    try:
+        conn = obter_conexao()
+        cur = conn.cursor()
+        cur.execute("SELECT public.get_all_logs()")
+
+        # Recupera o resultado da função
+        result = cur.fetchone()[0]
+
+        # Adiciona log para ver o resultado bruto
+        print("Resultado da função PostgreSQL:", result)
+
+        # Fecha o cursor e a conexão
+        cur.close()
+        conn.close()
+
+        # Result é uma string JSON, então usamos json.loads para convertê-lo em um dicionário Python
+        data = result
+
+        # Adiciona log para ver os dados convertidos
+        print("Dados convertidos:", data)
+
+        return data
+    except psycopg2.Error as e:
+        print(f"Erro ao conectar ao banco de dados: {e}")
+        return {"logs": [], "total_count": 0}
+    except Exception as e:
+        print(f"Erro ao obter os dados dos jogadores: {e}")
+        return {"logs": [], "total_count": 0}
 
 
